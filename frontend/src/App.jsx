@@ -416,7 +416,7 @@ function AnalysisResult({ text, filters }) {
 
   if (sections.length === 0) {
     return (
-      <div className="analysis-result analysis-result--full">
+      <div className="analysis-result">
         <div className="result-section">
           <div className="markdown-content">
             <ReactMarkdown>{text}</ReactMarkdown>
@@ -429,24 +429,39 @@ function AnalysisResult({ text, filters }) {
   const isIssueSection = (s) =>
     s.content.includes('🔴') || s.content.includes('🟡') || s.content.includes('🟢')
 
+  // 拆分：组件树放左栏，其余放右栏
+  const treeSection = sections.find(s => s.title.includes('组件树'))
+  const rightSections = sections.filter(s => s !== treeSection)
+
   return (
-    <div className="analysis-result analysis-result--full">
-      {sections.map((section, idx) => {
-        const content = isIssueSection(section)
-          ? filterBySeverity(section.content, filters)
-          : section.content
-        const titleLower = section.title.toLowerCase()
-        const isTree = titleLower.includes('组件树')
-        const isScore = titleLower.includes('评分')
-        return (
-          <div key={idx} className={`result-section ${isTree ? 'tree-section' : ''} ${isScore ? 'score-section' : ''}`}>
-            {section.title && <h3 className="section-title">{section.title}</h3>}
-            <div className={`markdown-content ${isIssueSection(section) ? 'issues-content' : ''}`}>
-              <ReactMarkdown>{content}</ReactMarkdown>
-            </div>
+    <div className="analysis-result">
+      {/* 左栏：组件树 */}
+      {treeSection && (
+        <div className="result-section tree-section">
+          <h3 className="section-title">{treeSection.title}</h3>
+          <div className="markdown-content">
+            <ReactMarkdown>{treeSection.content}</ReactMarkdown>
           </div>
-        )
-      })}
+        </div>
+      )}
+
+      {/* 右栏：问题清单 + 评分 + 其他 */}
+      <div className="result-right">
+        {rightSections.map((section, idx) => {
+          const content = isIssueSection(section)
+            ? filterBySeverity(section.content, filters)
+            : section.content
+          const isScore = section.title.toLowerCase().includes('评分')
+          return (
+            <div key={idx} className={`result-section ${isScore ? 'score-section' : ''}`}>
+              {section.title && <h3 className="section-title">{section.title}</h3>}
+              <div className={`markdown-content ${isIssueSection(section) ? 'issues-content' : ''}`}>
+                <ReactMarkdown>{content}</ReactMarkdown>
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

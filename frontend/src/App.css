@@ -818,11 +818,18 @@ body {
 }
 .severity-chip:hover { opacity: 0.75; }
 
-/* Analysis layout */
-.analysis-result--full {
+/* Analysis grid — 左右双栏 */
+.analysis-result {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+}
+
+.result-right {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  min-width: 0;
 }
 
 .result-section {
@@ -853,6 +860,11 @@ body {
 .tree-section {
   background: linear-gradient(135deg, var(--bg-card), #f8f5ff);
   border-color: #d8d0f0;
+  position: sticky;
+  top: 64px;
+  align-self: start;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
 }
 
 .score-section {
@@ -1103,6 +1115,8 @@ body {
   .toggle-more { align-self: flex-end; }
   .config-extra { flex-direction: column; }
   .upload-area { grid-template-columns: 1fr; }
+  .analysis-result { grid-template-columns: 1fr; }
+  .tree-section { position: static; max-height: none; }
   .vs-badge { margin: -6px auto; }
   .results-header { flex-direction: column; gap: 10px; align-items: flex-start; }
   .progress-steps { flex-wrap: wrap; gap: 4px; }
