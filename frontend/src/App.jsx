@@ -507,9 +507,12 @@ function HistoryPanel({ history, onSelect, onDelete, currentTaskId }) {
 
 /* ─── 主应用 ─── */
 export default function App() {
-  const [apiKey, setApiKey] = useState('')
+  const [apiKey, setApiKeyRaw] = useState(() => localStorage.getItem('visual-diff-apikey') || '')
   const [showKey, setShowKey] = useState(false)
-  const [baseUrl, setBaseUrl] = useState('https://ai.leihuo.netease.com/')
+  const [baseUrl, setBaseUrlRaw] = useState(() => localStorage.getItem('visual-diff-baseurl') || 'https://ai.leihuo.netease.com/')
+
+  const setApiKey = useCallback((v) => { setApiKeyRaw(v); localStorage.setItem('visual-diff-apikey', v) }, [])
+  const setBaseUrl = useCallback((v) => { setBaseUrlRaw(v); localStorage.setItem('visual-diff-baseurl', v) }, [])
   const [thinkingBudget, setThinkingBudget] = useState(0.18)
   const [canvasW, setCanvasW] = useState(2100)
   const [canvasH, setCanvasH] = useState(1080)
@@ -648,9 +651,10 @@ export default function App() {
               <ArrowLeft size={16} />
             </button>
           )}
+          <span className="header-emoji">🎮</span>
           <h1 className="app-title">Visual Diff</h1>
           <span className="app-divider" />
-          <p className="app-subtitle">游戏美术还原度检查</p>
+          <p className="app-subtitle">美术还原度小助手</p>
         </div>
         <StatusBar
           apiKey={apiKey}
@@ -748,8 +752,9 @@ export default function App() {
 
             {/* Upload */}
             <div className="upload-area">
-              <ImageDropZone label="设计稿" sublabel="目标效果" image={artImage} onImageChange={setArtImage} />
-              <ImageDropZone label="实机截图" sublabel="实际还原" image={gameImage} onImageChange={setGameImage} />
+              <ImageDropZone label="🎨 设计稿" sublabel="目标效果" image={artImage} onImageChange={setArtImage} />
+              <div className="vs-badge">VS</div>
+              <ImageDropZone label="🖥️ 实机截图" sublabel="实际还原" image={gameImage} onImageChange={setGameImage} />
             </div>
 
             {/* Action + Progress */}
@@ -762,7 +767,7 @@ export default function App() {
                 {loading ? (
                   <><Loader2 size={16} className="spin" /> {phase?.label || '准备中'}…</>
                 ) : (
-                  '开始分析'
+                  <><Zap size={15} /> 开始分析 ✨</>
                 )}
               </button>
             </div>
@@ -795,7 +800,7 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        Powered by Claude &middot; Visual Diff Tool
+        <span>Made with 💜 · Powered by Claude</span>
       </footer>
     </div>
   )
