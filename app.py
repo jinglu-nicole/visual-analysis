@@ -1,4 +1,9 @@
-"""主程序入口 - Gradio 界面"""
+"""
+[WHO]: 提供 create_interface() Gradio 界面工厂, split_output() 输出拆分, filter_analysis() 严重度筛选
+[FROM]: 依赖 analyzer.compare_images 执行图片分析, config.ANTHROPIC_BASE_URL 获取默认 URL
+[TO]: 作为 Gradio 模式独立入口运行（python app.py）
+[HERE]: 项目根目录 app.py — Gradio UI 入口；与 server.py 为并列的两种 UI 模式
+"""
 import re
 import gradio as gr
 from analyzer import compare_images

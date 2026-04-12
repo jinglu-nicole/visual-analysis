@@ -1,4 +1,9 @@
-"""Claude API 调用与分析逻辑"""
+"""
+[WHO]: 提供 compare_images() 核心分析函数, dollars_to_tokens() 预算换算
+[FROM]: 依赖 anthropic SDK 调用 Claude API, config 获取 URL/模型名, utils 进行图像预处理
+[TO]: 被 app.py (Gradio) 和 server.py (FastAPI) 共同调用
+[HERE]: 项目根目录 analyzer.py — 核心分析引擎；包含完整 Prompt 模板与 API 调用逻辑
+"""
 import anthropic
 from config import ANTHROPIC_BASE_URL, MODEL
 from utils import image_to_base64, get_image_media_type, extract_dominant_colors

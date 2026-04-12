@@ -1,4 +1,9 @@
-"""工具函数"""
+"""
+[WHO]: 提供 image_to_base64(), get_image_media_type(), extract_dominant_colors() 三个图像工具函数
+[FROM]: 依赖 Pillow (PIL) 进行图像量化与主色提取, base64/pathlib 做编码与路径处理
+[TO]: 被 analyzer.py 调用进行图像预处理
+[HERE]: 项目根目录 utils.py — 图像处理工具集；为 analyzer.py 提供 base64 编码和颜色分析
+"""
 import base64
 from pathlib import Path
 from PIL import Image

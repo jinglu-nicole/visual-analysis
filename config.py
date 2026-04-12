@@ -1,4 +1,9 @@
-"""配置文件"""
+"""
+[WHO]: 提供 ANTHROPIC_BASE_URL, MODEL 两个配置常量
+[FROM]: 依赖 os.environ 读取环境变量
+[TO]: 被 analyzer.py, app.py, server.py 引用
+[HERE]: 项目根目录 config.py — 全局配置；修改模型或服务商 URL 在此处
+"""
 import os
 
 # 自定义服务商 URL

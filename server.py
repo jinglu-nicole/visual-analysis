@@ -1,8 +1,8 @@
 """
-[WHO]: FastAPI 后端，提供 /api/analyze 图片对比接口
-[FROM]: analyzer.compare_images, config
-[TO]: React 前端通过 HTTP 调用
-[HERE]: 项目根目录，替代 Gradio 的 app.py 作为后端服务
+[WHO]: 提供 FastAPI 后端 app 实例, /api/analyze POST 接口, React SPA 静态文件服务
+[FROM]: 依赖 analyzer.compare_images 执行分析, config.ANTHROPIC_BASE_URL 获取默认 URL, FastAPI/CORS/StaticFiles
+[TO]: 被 React 前端通过 HTTP 调用; 生产模式下同时 serve frontend/dist/ 构建产物
+[HERE]: 项目根目录 server.py — FastAPI 后端入口；与 app.py 为并列的两种 UI 模式
 """
 import os
 import tempfile
