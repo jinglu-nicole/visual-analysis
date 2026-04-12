@@ -117,38 +117,104 @@ function SeverityFilter({ filters, onChange }) {
   )
 }
 
+/**
+ * 按 ## 二级标题拆分 markdown 为多个段落
+ */
+function splitByH2(text) {
+  const sections = []
+  const lines = text.split('\n')
+  let current = null
+
+  for (const line of lines) {
+    if (line.startsWith('## ')) {
+      if (current) sections.push(current)
+      current = { title: line.replace(/^## /, '').trim(), lines: [] }
+    } else {
+      if (current) {
+        current.lines.push(line)
+      } else {
+        // 在第一个 ## 之前的内容
+        if (line.trim()) {
+          current = { title: '', lines: [line] }
+        }
+      }
+    }
+  }
+  if (current) sections.push(current)
+
+  return sections.map(s => ({ title: s.title, content: s.lines.join('\n').trim() }))
+}
+
+/**
+ * 对"问题清单"类段落按严重度筛选
+ */
+function filterBySeverity(content, filters) {
+  if (filters.length === 3) return content // 全选不需要过滤
+
+  const lines = content.split('\n')
+  const result = []
+  let skipBlock = false
+
+  for (const line of lines) {
+    const trimmed = line.trim()
+    if (trimmed.startsWith('🔴') || trimmed.startsWith('🟡') || trimmed.startsWith('🟢')) {
+      skipBlock = !filters.some(f => trimmed.startsWith(f))
+      if (!skipBlock) result.push(line)
+    } else {
+      if (!skipBlock) result.push(line)
+    }
+  }
+  return result.join('\n')
+}
+
 function AnalysisResult({ text, filters }) {
   if (!text) return null
 
-  const treeMatch = text.match(/(## 组件树.*?)(?=## 问题清单)/s)
-  const analysisMatch = text.match(/(## 问题清单.*)/s)
-  const tree = treeMatch ? treeMatch[1].trim() : ''
-  const analysis = analysisMatch ? analysisMatch[1].trim() : text.trim()
+  const sections = splitByH2(text)
 
-  const filteredAnalysis = analysis.split('\n').filter(line => {
-    const trimmed = line.trim()
-    if (trimmed.startsWith('🔴') || trimmed.startsWith('🟡') || trimmed.startsWith('🟢')) {
-      return filters.some(f => trimmed.startsWith(f))
-    }
-    return true
-  }).join('\n')
-
-  return (
-    <div className="analysis-result">
-      {tree && (
-        <div className="result-section tree-section">
-          <h3 className="section-title">组件树</h3>
-          <div className="markdown-content tree-content">
-            <ReactMarkdown>{tree.replace('## 组件树', '').trim()}</ReactMarkdown>
+  // 如果没能拆出任何段落，直接整段渲染
+  if (sections.length === 0) {
+    return (
+      <div className="analysis-result analysis-result--full">
+        <div className="result-section">
+          <div className="markdown-content">
+            <ReactMarkdown>{text}</ReactMarkdown>
           </div>
         </div>
-      )}
-      <div className="result-section issues-section">
-        <h3 className="section-title">问题清单</h3>
-        <div className="markdown-content issues-content">
-          <ReactMarkdown>{filteredAnalysis.replace('## 问题清单', '').trim()}</ReactMarkdown>
-        </div>
       </div>
+    )
+  }
+
+  // 判断一个 section 是否是"问题清单"类（含 🔴🟡🟢）
+  const isIssueSection = (s) =>
+    s.content.includes('🔴') || s.content.includes('🟡') || s.content.includes('🟢')
+
+  return (
+    <div className="analysis-result analysis-result--full">
+      {sections.map((section, idx) => {
+        const content = isIssueSection(section)
+          ? filterBySeverity(section.content, filters)
+          : section.content
+
+        // 判断 section 类型以加样式类
+        const titleLower = section.title.toLowerCase()
+        const isTree = titleLower.includes('组件树')
+        const isScore = titleLower.includes('评分')
+
+        return (
+          <div
+            key={idx}
+            className={`result-section ${isTree ? 'tree-section' : ''} ${isScore ? 'score-section' : ''}`}
+          >
+            {section.title && (
+              <h3 className="section-title">{section.title}</h3>
+            )}
+            <div className={`markdown-content ${isIssueSection(section) ? 'issues-content' : ''}`}>
+              <ReactMarkdown>{content}</ReactMarkdown>
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

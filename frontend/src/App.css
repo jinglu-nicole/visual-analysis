@@ -44,7 +44,7 @@ body {
 
 /* ---------- Header ---------- */
 .app-header {
-  padding: 0 32px;
+  padding: 0 40px;
   height: 52px;
   display: flex;
   align-items: center;
@@ -83,10 +83,10 @@ body {
 /* ---------- Main ---------- */
 .main-content {
   flex: 1;
-  max-width: 960px;
+  max-width: 1400px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 20px 40px;
+  padding: 24px 40px 40px;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -204,11 +204,11 @@ body {
 .upload-area {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
 .drop-zone {
-  min-height: 280px;
+  min-height: 340px;
   border: 1.5px dashed var(--border);
   border-radius: var(--radius);
   display: flex;
@@ -402,11 +402,11 @@ body {
 }
 .severity-chip:hover { opacity: 0.8; }
 
-/* Analysis grid */
-.analysis-result {
-  display: grid;
-  grid-template-columns: 260px 1fr;
-  gap: 12px;
+/* Analysis layout */
+.analysis-result--full {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .result-section {
@@ -428,11 +428,19 @@ body {
 }
 
 .tree-section {
-  position: sticky;
-  top: 64px;
-  align-self: start;
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
+  background: var(--bg-soft);
+}
+
+.score-section .markdown-content table {
+  font-size: 13px;
+}
+.score-section .markdown-content th {
+  font-size: 12px;
+}
+.score-section .markdown-content td:nth-child(3),
+.score-section .markdown-content th:nth-child(3) {
+  text-align: center;
+  font-weight: 600;
 }
 
 /* ---------- Markdown ---------- */
@@ -545,7 +553,5 @@ body {
   .toggle-more { align-self: flex-end; }
   .config-extra { flex-direction: column; }
   .upload-area { grid-template-columns: 1fr; }
-  .analysis-result { grid-template-columns: 1fr; }
-  .tree-section { position: static; max-height: none; }
   .results-header { flex-direction: column; gap: 8px; align-items: flex-start; }
 }
