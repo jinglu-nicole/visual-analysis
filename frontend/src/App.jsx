@@ -86,6 +86,27 @@ async function fileToThumbnail(file) {
   })
 }
 
+/** 将 File 压缩为可查看的预览图（宽度限 600px，JPEG 质量 0.7） */
+const PREVIEW_MAX_WIDTH = 600
+async function fileToPreview(file) {
+  if (!file) return null
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const scale = Math.min(PREVIEW_MAX_WIDTH / img.width, 1)
+      canvas.width = Math.round(img.width * scale)
+      canvas.height = Math.round(img.height * scale)
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', 0.7))
+      URL.revokeObjectURL(img.src)
+    }
+    img.onerror = () => resolve(null)
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 function loadHistory() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')
@@ -93,9 +114,21 @@ function loadHistory() {
 }
 
 function saveHistory(records) {
+  const data = records.slice(0, MAX_HISTORY)
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records.slice(0, MAX_HISTORY)))
-  } catch { /* quota exceeded — silently fail */ }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  } catch (e) {
+    // localStorage 满了，逐条删旧记录直到能存下
+    if (e.name === 'QuotaExceededError' || e.code === 22) {
+      for (let i = data.length - 1; i > 0; i--) {
+        const trimmed = data.slice(0, i)
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed))
+          return
+        } catch { /* continue trimming */ }
+      }
+    }
+  }
 }
 
 function countSeverity(text) {
@@ -631,9 +664,11 @@ export default function App() {
 
       // 保存到历史
       const taskId = generateTaskId()
-      const [artThumb, gameThumb] = await Promise.all([
+      const [artThumb, gameThumb, artPreview, gamePreview] = await Promise.all([
         fileToThumbnail(artImage),
         fileToThumbnail(gameImage),
+        fileToPreview(artImage),
+        fileToPreview(gameImage),
       ])
       const record = {
         id: taskId,
@@ -641,6 +676,8 @@ export default function App() {
         result: text,
         artThumb,
         gameThumb,
+        artPreview,
+        gamePreview,
       }
       const updated = [record, ...history]
       setHistory(updated)
@@ -702,6 +739,32 @@ export default function App() {
               </div>
               <SeverityFilter filters={filters} onChange={setFilters} />
             </div>
+
+            {/* 历史图片预览 */}
+            {(() => {
+              const record = history.find(r => r.id === viewingTaskId)
+              if (!record) return null
+              const artSrc = record.artPreview || record.artThumb
+              const gameSrc = record.gamePreview || record.gameThumb
+              if (!artSrc && !gameSrc) return null
+              return (
+                <div className="history-images">
+                  {artSrc && (
+                    <div className="history-image-card">
+                      <span className="history-image-label">🎨 设计稿</span>
+                      <img src={artSrc} alt="设计稿" className="history-image" />
+                    </div>
+                  )}
+                  {gameSrc && (
+                    <div className="history-image-card">
+                      <span className="history-image-label">🖥️ 实机截图</span>
+                      <img src={gameSrc} alt="实机截图" className="history-image" />
+                    </div>
+                  )}
+                </div>
+              )
+            })()}
+
             <AnalysisResult text={viewingResult} filters={filters} />
           </div>
         ) : (
