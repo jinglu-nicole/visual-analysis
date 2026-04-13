@@ -861,10 +861,16 @@ body {
   background: linear-gradient(135deg, var(--bg-card), #f8f5ff);
   border-color: #d8d0f0;
   position: sticky;
-  top: 64px;
+  top: 70px;
   align-self: start;
-  max-height: calc(100vh - 80px);
+  max-height: calc(100vh - 90px);
   overflow-y: auto;
+}
+
+.tree-sub-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--border);
 }
 
 .score-section {

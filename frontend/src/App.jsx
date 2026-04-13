@@ -462,19 +462,31 @@ function AnalysisResult({ text, filters }) {
   const isIssueSection = (s) =>
     s.content.includes('🔴') || s.content.includes('🟡') || s.content.includes('🟢')
 
-  // 拆分：组件树放左栏，其余放右栏
-  const treeSection = sections.find(s => s.title.includes('组件树'))
-  const rightSections = sections.filter(s => s !== treeSection)
+  // 识别组件树区域：从 "组件树" 开始，到 "问题清单"/"还原度评分" 之前的所有 section 都属于树
+  const treeStartIdx = sections.findIndex(s => s.title.includes('组件树'))
+  const treeEndIdx = sections.findIndex((s, i) =>
+    i > treeStartIdx && (s.title.includes('问题清单') || s.title.includes('评分'))
+  )
+  const treeSections = treeStartIdx >= 0
+    ? sections.slice(treeStartIdx, treeEndIdx >= 0 ? treeEndIdx : undefined)
+        .filter(s => !isIssueSection(s)) // 安全过滤：不把含问题条目的section放进树
+    : []
+  const treeSectionSet = new Set(treeSections)
+  const rightSections = sections.filter(s => !treeSectionSet.has(s))
 
   return (
     <div className="analysis-result">
-      {/* 左栏：组件树 */}
-      {treeSection && (
+      {/* 左栏：组件树（含 ▌区块子 section） */}
+      {treeSections.length > 0 && (
         <div className="result-section tree-section">
-          <h3 className="section-title">{treeSection.title}</h3>
-          <div className="markdown-content">
-            <ReactMarkdown>{treeSection.content}</ReactMarkdown>
-          </div>
+          {treeSections.map((section, idx) => (
+            <div key={idx} className={idx > 0 ? 'tree-sub-section' : ''}>
+              <h3 className="section-title">{section.title}</h3>
+              <div className="markdown-content">
+                <ReactMarkdown>{section.content}</ReactMarkdown>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
