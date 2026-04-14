@@ -443,7 +443,7 @@ function filterBySeverity(content, filters) {
   return result.join('\n')
 }
 
-function AnalysisResult({ text, filters }) {
+function AnalysisResult({ text, filters, onFiltersChange }) {
   if (!text) return null
   const sections = splitByH2(text)
 
@@ -493,14 +493,18 @@ function AnalysisResult({ text, filters }) {
       {/* 右栏：问题清单 + 评分 + 其他 */}
       <div className="result-right">
         {rightSections.map((section, idx) => {
-          const content = isIssueSection(section)
+          const isIssue = isIssueSection(section)
+          const content = isIssue
             ? filterBySeverity(section.content, filters)
             : section.content
           const isScore = section.title.toLowerCase().includes('评分')
           return (
-            <div key={idx} className={`result-section ${isScore ? 'score-section' : ''}`}>
+            <div key={idx} className={`result-section ${isScore ? 'score-section' : ''} ${isIssue ? 'issues-section' : ''}`}>
               {section.title && <h3 className="section-title">{section.title}</h3>}
-              <div className={`markdown-content ${isIssueSection(section) ? 'issues-content' : ''}`}>
+              {isIssue && onFiltersChange && (
+                <SeverityFilter filters={filters} onChange={onFiltersChange} />
+              )}
+              <div className={`markdown-content ${isIssue ? 'issues-content' : ''}`}>
                 <ReactMarkdown>{content}</ReactMarkdown>
               </div>
             </div>
@@ -749,7 +753,6 @@ export default function App() {
                   })()}
                 </span>
               </div>
-              <SeverityFilter filters={filters} onChange={setFilters} />
             </div>
 
             {/* 历史图片预览 */}
@@ -777,7 +780,7 @@ export default function App() {
               )
             })()}
 
-            <AnalysisResult text={viewingResult} filters={filters} />
+            <AnalysisResult text={viewingResult} filters={filters} onFiltersChange={setFilters} />
           </div>
         ) : (
           <>
@@ -880,9 +883,8 @@ export default function App() {
               <div className="results-area">
                 <div className="results-header">
                   <h2 className="results-title">分析报告</h2>
-                  <SeverityFilter filters={filters} onChange={setFilters} />
                 </div>
-                <AnalysisResult text={result} filters={filters} />
+                <AnalysisResult text={result} filters={filters} onFiltersChange={setFilters} />
               </div>
             )}
           </>
