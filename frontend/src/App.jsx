@@ -486,16 +486,32 @@ function AnalysisResult({ text, filters, onFiltersChange }) {
   const otherSections = sections.filter(s => !treeSectionSet.has(s) && s !== issueSection)
 
   // 将每个树区块与问题组配对
+  // 归一化函数：去掉 ▌·[]空格 等干扰字符，统一比较
+  const normalize = s => s.replace(/[▌·\[\]【】\s]/g, '').toLowerCase()
+
   const paired = treeBlocks.map(block => {
-    // 从标题提取区块名：去掉 ▌ 和前后空格/符号
     const blockName = block.title.replace(/^[▌·\s]+/, '').replace(/[·\s]+$/, '').trim()
-    // 模糊匹配：问题组标题包含区块名
+    const normBlock = normalize(blockName)
+    // 也提取树区块下的子组件名（### └ xxx 或 - ◦ xxx），用于子组件级匹配
+    const subNames = []
+    for (const line of block.content.split('\n')) {
+      const subM = line.match(/(?:###\s*└\s*|[-*]\s*◦\s*)(.+?)(?:\s*[\(（].*)?$/)
+      if (subM) subNames.push(normalize(subM[1].trim()))
+    }
+
     const matchedGroups = []
-    const unmatchedHolder = []
     for (const group of issueGroups) {
       if (group._matched) continue
-      // 标题如 "[顶部导航栏 · 默认态]" 包含 "顶部导航栏"
-      if (blockName && group.heading && group.heading.includes(blockName)) {
+      const normHeading = normalize(group.heading)
+      // 双向模糊匹配：区块名 ⊂ 问题标题 OR 问题标题核心 ⊂ 区块名
+      const headingCore = normHeading.replace(/默认态|激活态|悬停态|禁用态|选中态/g, '')
+      if (normBlock && (normHeading.includes(normBlock) || headingCore.includes(normBlock) || normBlock.includes(headingCore))) {
+        group._matched = true
+        matchedGroups.push(group)
+        continue
+      }
+      // 子组件匹配
+      if (subNames.some(sub => normHeading.includes(sub) || sub.includes(headingCore))) {
         group._matched = true
         matchedGroups.push(group)
       }
