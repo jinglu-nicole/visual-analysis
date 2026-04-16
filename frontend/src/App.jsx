@@ -647,6 +647,7 @@ function parseScoreTable(content) {
 
 function ScoreCard({ content }) {
   const { rows, totalScore } = parseScoreTable(content)
+  const [showRaw, setShowRaw] = useState(false)
 
   if (rows.length === 0 && !totalScore) {
     // 无法解析，回退到 markdown
@@ -698,6 +699,18 @@ function ScoreCard({ content }) {
             </div>
           )
         })}
+      </div>
+
+      {/* 完整原文（可折叠） */}
+      <div className="score-raw-toggle">
+        <button className="score-raw-btn" onClick={() => setShowRaw(!showRaw)}>
+          {showRaw ? '收起原始报告 ▲' : '查看完整原始报告 ▼'}
+        </button>
+        {showRaw && (
+          <div className="markdown-content score-raw-content">
+            <ReactMarkdown>{content}</ReactMarkdown>
+          </div>
+        )}
       </div>
     </div>
   )
