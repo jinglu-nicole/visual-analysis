@@ -920,7 +920,7 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        <span>Made with 💜 · Powered by Claude</span>
+        <span>Made with 💜 · Powered by Claude · @xuqing1</span>
       </footer>
     </div>
   )
